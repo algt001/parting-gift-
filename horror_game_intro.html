@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ПОСЛЕДНИЙ ПОДАРОК - Детективный Хоррор</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Retro Horror Aesthetic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Comfortaa:wght@700&family=VT323&family=Russo+One&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Global Styles */
+        body {
+            background-color: #020202;
+            color: #d1d5db;
+            font-family: 'Russo One', sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        .horror-title {
+            font-family: 'Cinzel Decorative', 'Russo One', serif;
+            text-shadow: 0 0 15px rgba(180, 0, 0, 0.9), 0 0 30px rgba(0, 0, 0, 0.98);
+        }
+
+        /* HEAVY CRT Scanline & Glitch Filters */
+        .scanlines {
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0, 0, 0, 0.75) 50%,
+                rgba(0, 0, 0, 0.75)
+            );
+            background-size: 100% 4px;
+        }
+
+        .vignette {
+            background: radial-gradient(circle, transparent 20%, rgba(0,0,0,0.98) 80%);
+        }
+
+        /* Horizontal Interference Band */
+        @keyframes vhs-bar {
+            0% { top: -20%; }
+            100% { top: 120%; }
+        }
+
+        .vhs-noise-bar {
+            position: absolute;
+            width: 100%;
+            height: 25px;
+            background: rgba(255, 255, 255, 0.06);
+            backdrop-filter: invert(0.2) blur(1px);
+            animation: vhs-bar 7s linear infinite;
+        }
+
+        /* RGB Split / Chromatic Aberration Shift */
+        @keyframes rgb-shift {
+            0%, 100% { text-shadow: -2px 0 #900, 2px 0 #044; transform: translate(0); }
+            20% { text-shadow: 3px 0 #900, -3px 0 #044; transform: translate(-1px, 1px); }
+            40% { text-shadow: -3px 0 #900, 1px 0 #044; transform: translate(2px, -1px); }
+            60% { text-shadow: 1px 0 #900, -2px 0 #044; transform: translate(-2px, 0); }
+            80% { text-shadow: -1px 0 #900, 2px 0 #044; transform: translate(1px, 2px); }
+        }
+
+        .rgb-glitch {
+            animation: rgb-shift 3s infinite;
+        }
+
+        /* Violent Screen Shake for Screamer */
+        @keyframes violent-shake {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            10% { transform: translate(-15px, 12px) rotate(-3deg); }
+            20% { transform: translate(18px, -15px) rotate(4deg); }
+            30% { transform: translate(-20px, 18px) rotate(-2deg); }
+            40% { transform: translate(15px, -10px) rotate(3deg); }
+            50% { transform: translate(-10px, 15px) rotate(-4deg); }
+            60% { transform: translate(18px, 10px) rotate(2deg); }
+            70% { transform: translate(-12px, -18px) rotate(-1deg); }
+            80% { transform: translate(20px, 12px) rotate(3deg); }
+            90% { transform: translate(-15px, -8px) rotate(-2deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        .screamer-shake {
+            animation: violent-shake 0.08s infinite !important;
+        }
+
+        /* Menu Button Styling */
+        .menu-btn {
+            position: relative;
+            letter-spacing: 0.2em;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn::before {
+            content: "►";
+            position: absolute;
+            left: -30px;
+            opacity: 0;
+            color: #b91c1c;
+            transition: all 0.3s ease;
+        }
+
+        .menu-btn:hover::before {
+            opacity: 1;
+            left: -22px;
+        }
+
+        .menu-btn:hover {
+            color: #ef4444;
+            text-shadow: 0 0 15px rgba(220, 38, 38, 0.9);
+            transform: scale(1.05);
+        }
+
+        /* SVG Noise overlay */
+        .noise-bg {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E");
+        }
+    </style>
+</head>
+<body class="w-screen h-screen flex flex-col justify-between items-center relative overflow-hidden select-none" id="main-body">
+
+    <!-- CRT / VHS Noise Overlays -->
+    <div class="absolute inset-0 scanlines pointer-events-none z-20"></div>
+    <div class="absolute inset-0 vignette pointer-events-none z-20"></div>
+    <div class="absolute inset-0 noise-bg pointer-events-none z-10"></div>
+    <div class="vhs-noise-bar pointer-events-none z-20"></div>
+
+    <!-- Start Overlay for Audio Enable -->
+    <div id="start-overlay" class="absolute inset-0 bg-black z-50 flex flex-col items-center justify-center cursor-pointer transition-opacity duration-1000">
+        <p class="text-red-700 tracking-[0.3em] text-lg sm:text-xl animate-pulse mb-3 font-mono text-center px-4">[ НАЖМИТЕ, ЧТОБЫ ВОЙТИ В КОШМАР ]</p>
+        <p class="text-gray-700 text-xs tracking-widest font-mono uppercase">РЕКОМЕНДУЕТСЯ ИСПОЛЬЗОВАТЬ НАУШНИКИ</p>
+    </div>
+
+    <!-- Screamer Screen Layer -->
+    <div id="screamer-layer" class="fixed inset-0 z-50 bg-black flex items-center justify-center hidden overflow-hidden">
+        <!-- High-contrast image container with violent red/white glitch flash -->
+        <div class="relative w-full h-full flex items-center justify-center">
+            <!-- User face image with fallback -->
+            <img id="screamer-img" src="face.jpg" alt="Screamer Face" class="w-full h-full object-cover sm:object-contain filter contrast-150 brightness-110 scale-125 animate-pulse">
+            <!-- Procedural Fallback Canvas in case face.jpg isn't placed in directory yet -->
+            <canvas id="screamerCanvas" class="w-full h-full object-cover hidden"></canvas>
+            <div class="absolute inset-0 bg-red-600/30 mix-blend-color-dodge pointer-events-none animate-ping"></div>
+        </div>
+    </div>
+
+    <!-- Audio Elements -->
+    <!-- Подключен твой файл: music.mp3 -->
+    <audio id="bg-music" src="music.mp3" loop preload="auto"></audio>
+
+    <!-- Header Section -->
+    <header class="z-30 pt-8 text-center opacity-60">
+        <span class="text-xs tracking-[0.5em] text-red-900 uppercase font-mono">SILENT NIGHT STUDIO • 1999</span>
+    </header>
+
+    <!-- Main Title & Menu -->
+    <main class="z-30 flex flex-col items-center justify-center my-auto px-4 text-center">
+        <!-- Main Game Title -->
+        <div id="title-container" class="mb-12 relative rgb-glitch">
+            <h1 class="horror-title text-4xl sm:text-6xl md:text-7xl font-bold tracking-widest text-gray-200 uppercase mb-2">
+                ПОСЛЕДНИЙ ПОДАРОК
+            </h1>
+            <div class="h-0.5 w-full bg-gradient-to-r from-transparent via-red-900 to-transparent"></div>
+            <p class="text-xs sm:text-sm text-red-800 tracking-[0.5em] font-mono mt-3 uppercase">THE LAST GIFT • SURVIVAL HORROR</p>
+        </div>
+
+        <!-- Menu Buttons -->
+        <nav class="flex flex-col space-y-6 text-xl sm:text-2xl font-semibold tracking-wider">
+            <button id="btn-play" class="menu-btn text-gray-300 uppercase py-1 px-4 focus:outline-none">
+                ИГРАТЬ
+            </button>
+            <button id="btn-difficulty" class="menu-btn text-gray-300 uppercase py-1 px-4 focus:outline-none">
+                СЛОЖНОСТЬ
+            </button>
+        </nav>
+    </main>
+
+    <!-- Footer Information -->
+    <footer class="z-30 pb-6 text-center text-gray-700 text-xs tracking-widest font-mono">
+        <p>© 1999 SILENT NIGHT STUDIO. ВСЕ ПРАВА ЗАЩИЩЕНЫ.</p>
+    </footer>
+
+    <!-- DIFFICULTY MODAL -->
+    <div id="difficulty-modal" class="fixed inset-0 z-40 bg-black/95 backdrop-blur-md flex items-center justify-center hidden transition-all duration-500">
+        <div class="border border-red-950 bg-neutral-950/95 p-6 sm:p-10 max-w-md w-11/12 text-center shadow-[0_0_50px_rgba(150,0,0,0.5)] relative">
+            
+            <h2 class="text-xl sm:text-2xl text-red-700 font-bold tracking-widest uppercase mb-6 border-b border-red-950 pb-3">
+                ВЫБОР СЛОЖНОСТИ
+            </h2>
+
+            <!-- Toggle Selector -->
+            <div class="my-6 flex items-center justify-center space-x-4">
+                <button id="diff-prev" class="text-red-900 text-3xl hover:text-red-600 font-bold px-3 py-1 transition-colors">&lt;</button>
+                <div class="w-52 bg-black border border-red-950 py-3 text-red-600 tracking-[0.2em] font-mono text-lg uppercase shadow-inner" id="difficulty-display">
+                    АД (СЛОЖНАЯ)
+                </div>
+                <button id="diff-next" class="text-red-900 text-3xl hover:text-red-600 font-bold px-3 py-1 transition-colors">&gt;</button>
+            </div>
+
+            <!-- Error Banner Message -->
+            <div id="error-message" class="h-12 flex items-center justify-center my-2">
+                <p class="text-red-600 text-xs font-mono tracking-widest uppercase hidden leading-relaxed" id="error-text">
+                    [ ОШИБКА: СУДЬБУ НЕ ИЗМЕНИТЬ ]
+                </p>
+            </div>
+
+            <p class="text-gray-500 text-xs font-mono mb-8 leading-relaxed tracking-wider">
+                РЕЖИМ "АД": Ресурсы крайне ограничены. Враги беспощадны. Второго шанса не будет.
+            </p>
+
+            <button id="btn-close-diff" class="border border-gray-800 hover:border-red-900 text-gray-500 hover:text-red-600 px-8 py-2 text-xs uppercase tracking-widest font-mono transition-all duration-300">
+                НАЗАД
+            </button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC & AUDIO SYNTHESIZER -->
+    <script>
+        // Define screamer function first so it's ready immediately
+        function useCanvasScreamer() {
+            const screamerImg = document.getElementById('screamer-img');
+            if (screamerImg) screamerImg.style.display = 'none';
+            const screamerCanvas = document.getElementById('screamerCanvas');
+            if (screamerCanvas) {
+                screamerCanvas.classList.remove('hidden');
+                drawScreamerFace();
+            }
+        }
+
+        // Attach error handler safely via JavaScript
+        const screamerImgEl = document.getElementById('screamer-img');
+        if (screamerImgEl) {
+            screamerImgEl.addEventListener('error', useCanvasScreamer);
+        }
+
+        // --- 1. SCREAMER CANVAS SILHOUETTE GENERATOR (FALLBACK FOR HOODED FIGURE) ---
+        function drawScreamerFace() {
+            const screamerCanvas = document.getElementById('screamerCanvas');
+            if (!screamerCanvas) return;
+            const sCtx = screamerCanvas.getContext('2d');
+            if (!sCtx) return;
+
+            screamerCanvas.width = 800;
+            screamerCanvas.height = 800;
+            const cx = 400;
+            const cy = 400;
+
+            sCtx.fillStyle = '#020202';
+            sCtx.fillRect(0, 0, 800, 800);
+
+            // Hooded Dark Cloak Outline
+            sCtx.fillStyle = '#111111';
+            sCtx.beginPath();
+            sCtx.moveTo(cx - 280, cy + 400);
+            sCtx.quadraticCurveTo(cx - 260, cy - 250, cx, cy - 320);
+            sCtx.quadraticCurveTo(cx + 260, cy - 250, cx + 280, cy + 400);
+            sCtx.fill();
+
+            // Inner Hood Shadows
+            sCtx.fillStyle = '#050505';
+            sCtx.beginPath();
+            sCtx.moveTo(cx - 200, cy + 350);
+            sCtx.quadraticCurveTo(cx - 180, cy - 180, cx, cy - 240);
+            sCtx.quadraticCurveTo(cx + 180, cy - 180, cx + 200, cy + 350);
+            sCtx.fill();
+
+            // Distorted Pale Asymmetrical Face
+            let faceGrad = sCtx.createRadialGradient(cx + 20, cy - 30, 10, cx, cy, 180);
+            faceGrad.addColorStop(0, '#d4d4d8');
+            faceGrad.addColorStop(0.5, '#71717a');
+            faceGrad.addColorStop(1, '#09090b');
+
+            sCtx.fillStyle = faceGrad;
+            sCtx.beginPath();
+            sCtx.moveTo(cx - 90, cy - 160);
+            sCtx.quadraticCurveTo(cx + 120, cy - 150, cx + 90, cy + 180);
+            sCtx.quadraticCurveTo(cx - 40, cy + 220, cx - 110, cy + 60);
+            sCtx.fill();
+
+            // Dark Uncanny Eye Socket
+            sCtx.fillStyle = '#000000';
+            sCtx.beginPath();
+            sCtx.ellipse(cx + 35, cy - 70, 32, 45, 0.1, 0, Math.PI * 2);
+            sCtx.fill();
+
+            // Wide Uncanny White Eye Pupil inside Socket
+            sCtx.fillStyle = '#ffffff';
+            sCtx.beginPath();
+            sCtx.arc(cx + 38, cy - 72, 10, 0, Math.PI * 2);
+            sCtx.fill();
+            sCtx.fillStyle = '#000000';
+            sCtx.beginPath();
+            sCtx.arc(cx + 38, cy - 72, 4, 0, Math.PI * 2);
+            sCtx.fill();
+
+            // Gaping Black Mouth Void with Sharp Needle Teeth
+            sCtx.fillStyle = '#000000';
+            sCtx.beginPath();
+            sCtx.moveTo(cx - 70, cy + 10);
+            sCtx.quadraticCurveTo(cx + 80, cy - 10, cx + 60, cy + 170);
+            sCtx.quadraticCurveTo(cx - 30, cy + 190, cx - 70, cy + 10);
+            sCtx.fill();
+
+            // Needle Teeth
+            sCtx.fillStyle = '#e4e4e7';
+            for (let i = 0; i < 12; i++) {
+                sCtx.beginPath();
+                let tx = cx - 50 + (i * 10);
+                sCtx.moveTo(tx, cy + 15);
+                sCtx.lineTo(tx + 4, cy + 35 + (Math.random() * 15));
+                sCtx.lineTo(tx + 8, cy + 15);
+                sCtx.fill();
+
+                sCtx.beginPath();
+                sCtx.moveTo(tx, cy + 140);
+                sCtx.lineTo(tx + 4, cy + 115 - (Math.random() * 15));
+                sCtx.lineTo(tx + 8, cy + 140);
+                sCtx.fill();
+            }
+        }
+
+        // --- 2. ANIMATED REALISTIC EYE BACKGROUND CANVAS ---
+        const eyeCanvas = document.getElementById('eyeCanvas');
+        const ctx = eyeCanvas ? eyeCanvas.getContext('2d') : null;
+        let frameCount = 0;
+        let pupilRadius = 35;
+        let pupilTarget = 35;
+
+        function drawEye() {
+            if (!eyeCanvas || !ctx) return;
+            eyeCanvas.width = 800;
+            eyeCanvas.height = 500;
+            const cx = eyeCanvas.width / 2;
+            const cy = eyeCanvas.height / 2;
+
+            ctx.clearRect(0, 0, eyeCanvas.width, eyeCanvas.height);
+
+            // Sclera (Eyeball Base)
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(100, cy);
+            ctx.bezierCurveTo(250, 90, 550, 90, 700, cy);
+            ctx.bezierCurveTo(550, 410, 250, 410, 100, cy);
+            ctx.clip();
+
+            let scleraGrad = ctx.createRadialGradient(cx, cy, 50, cx, cy, 320);
+            scleraGrad.addColorStop(0, '#e2e8f0');
+            scleraGrad.addColorStop(0.6, '#94a3b8');
+            scleraGrad.addColorStop(1, '#334155');
+
+            ctx.fillStyle = scleraGrad;
+            ctx.fillRect(0, 0, eyeCanvas.width, eyeCanvas.height);
+
+            // Blood Vessels
+            ctx.strokeStyle = 'rgba(153, 27, 27, 0.4)';
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < 8; i++) {
+                ctx.beginPath();
+                let angle = (i * Math.PI / 4) + (Math.sin(frameCount * 0.01) * 0.05);
+                let startX = cx + Math.cos(angle) * 110;
+                let startY = cy + Math.sin(angle) * 110;
+                let endX = cx + Math.cos(angle) * 280;
+                let endY = cy + Math.sin(angle) * 280;
+
+                ctx.moveTo(startX, startY);
+                ctx.quadraticCurveTo((startX + endX) / 2 + Math.sin(i) * 20, (startY + endY) / 2 + Math.cos(i) * 20, endX, endY);
+                ctx.stroke();
+            }
+
+            // Iris
+            const irisRadius = 110;
+            let irisGrad = ctx.createRadialGradient(cx, cy, 20, cx, cy, irisRadius);
+            irisGrad.addColorStop(0, '#000000');
+            irisGrad.addColorStop(0.2, '#7a0000');
+            irisGrad.addColorStop(0.7, '#380000');
+            irisGrad.addColorStop(1, '#0d0000');
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, irisRadius, 0, Math.PI * 2);
+            ctx.fillStyle = irisGrad;
+            ctx.fill();
+
+            // Animated Pupil Dilating
+            pupilRadius += (pupilTarget - pupilRadius) * 0.05;
+            if (Math.random() < 0.02) {
+                pupilTarget = 22 + Math.random() * 25;
+            }
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, pupilRadius, 0, Math.PI * 2);
+            ctx.fillStyle = '#000000';
+            ctx.fill();
+
+            // Specular Highlight / Glare
+            ctx.beginPath();
+            ctx.arc(cx - 30, cy - 35, 22, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.fill();
+
+            ctx.restore();
+
+            // Eyelid Cutout Mask
+            ctx.beginPath();
+            ctx.moveTo(0, 0); ctx.lineTo(eyeCanvas.width, 0); ctx.lineTo(eyeCanvas.width, eyeCanvas.height); ctx.lineTo(0, eyeCanvas.height);
+            ctx.closePath();
+            ctx.moveTo(100, cy);
+            ctx.bezierCurveTo(250, 90, 550, 90, 700, cy);
+            ctx.bezierCurveTo(550, 410, 250, 410, 100, cy);
+            ctx.closePath();
+
+            ctx.fillStyle = '#020202';
+            ctx.fill();
+
+            frameCount++;
+            requestAnimationFrame(drawEye);
+        }
+
+        // Run Background Eye Loop on load
+        window.addEventListener('DOMContentLoaded', () => {
+            if (eyeCanvas && ctx) {
+                drawEye();
+            }
+        });
+
+        // --- 3. AUDIO MANAGEMENT ---
+        let audioCtx = null;
+        const bgMusic = document.getElementById('bg-music');
+
+        function initAudio() {
+            // Включаем фоновую музыку при первом клике (требование браузеров)
+            if (bgMusic) {
+                bgMusic.volume = 0; // Начинаем с тишины
+                bgMusic.play().then(() => {
+                    // Плавное нарастание громкости от 0 до 0.7 за 3 секунды
+                    let volume = 0;
+                    const fadeInterval = setInterval(() => {
+                        if (volume < 0.7) {
+                            volume += 0.05;
+                            bgMusic.volume = Math.min(volume, 0.7);
+                        } else {
+                            clearInterval(fadeInterval);
+                        }
+                    }, 200);
+                }).catch(e => console.log("Ошибка воспроизведения аудио:", e));
+            }
+
+            // Инициализация Web Audio API для звуковых эффектов (скример/ошибки)
+            if (!audioCtx) {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioCtx = new AudioContext();
+            }
+        }
+
+        function fadeOutMusic(callback) {
+            if (!bgMusic) {
+                if (callback) callback();
+                return;
+            }
+            // Плавное затухание музыки
+            const fadeInterval = setInterval(() => {
+                if (bgMusic.volume > 0.05) {
+                    bgMusic.volume -= 0.05;
+                } else {
+                    bgMusic.volume = 0;
+                    bgMusic.pause();
+                    clearInterval(fadeInterval);
+                    if (callback) callback();
+                }
+            }, 50);
+        }
+
+        function playClickSFX() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(100, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(30, audioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.15);
+        }
+
+        function playErrorSFX() {
+            if (!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(60, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(40, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.4);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.4);
+        }
+
+        // LOUD HORROR SCREAMER AUDIO SYNTH
+        function playScreamerSFX() {
+            if (!audioCtx) return;
+
+            // Harsh Noise/Screech Generator
+            const bufferSize = audioCtx.sampleRate * 1.5; // 1.5 Seconds
+            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const data = buffer.getChannelData(0);
+
+            for (let i = 0; i < bufferSize; i++) {
+                data[i] = (Math.random() * 2 - 1); // White Noise
+            }
+
+            const noise = audioCtx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'highpass';
+            filter.frequency.setValueAtTime(1000, audioCtx.currentTime);
+
+            const gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.9, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.4);
+
+            // Screaming Sawtooth synth overlaid
+            const osc = audioCtx.createOscillator();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(200, audioCtx.currentTime + 1.2);
+
+            noise.connect(filter);
+            filter.connect(gain);
+            osc.connect(gain);
+
+            noise.start(audioCtx.currentTime);
+            osc.start(audioCtx.currentTime);
+
+            noise.stop(audioCtx.currentTime + 1.4);
+            osc.stop(audioCtx.currentTime + 1.2);
+        }
+
+        // --- 4. BUTTON EVENTS & GAME FLOW ---
+        const startOverlay = document.getElementById('start-overlay');
+        const btnPlay = document.getElementById('btn-play');
+        const btnDifficulty = document.getElementById('btn-difficulty');
+        const diffModal = document.getElementById('difficulty-modal');
+        const btnCloseDiff = document.getElementById('btn-close-diff');
+        const diffPrev = document.getElementById('diff-prev');
+        const diffNext = document.getElementById('diff-next');
+        const errorMessage = document.getElementById('error-text');
+
+        startOverlay.addEventListener('click', () => {
+            initAudio();
+            startOverlay.style.opacity = '0';
+            setTimeout(() => startOverlay.remove(), 1000);
+        });
+
+        btnPlay.addEventListener('click', () => {
+            playClickSFX();
+            fadeOutMusic(() => {
+                document.getElementById('screamer-layer').classList.remove('hidden');
+                document.getElementById('main-body').classList.add('screamer-shake');
+                playScreamerSFX();
+
+                setTimeout(() => {
+                    document.getElementById('screamer-layer').classList.add('hidden');
+                    document.getElementById('main-body').classList.remove('screamer-shake');
+
+                    document.getElementById('title-container').classList.add('hidden');
+                    document.querySelector('nav').classList.add('hidden');
+                    document.querySelector('header').classList.add('hidden');
+                    document.querySelector('footer').classList.add('hidden');
+
+                    const mainContainer = document.querySelector('main');
+                    mainContainer.innerHTML = `
+                        <!-- Briefing / Intro Screen -->
+                        <div id="briefing-screen" class="max-w-xl bg-neutral-950/90 border border-red-950 p-6 sm:p-8 rounded-lg shadow-[0_0_50px_rgba(150,0,0,0.4)] text-left font-mono">
+                            <h2 class="text-xl sm:text-2xl text-red-600 font-bold tracking-widest uppercase mb-4 border-b border-red-900 pb-2">
+                                📜 ДЕЛО №13: ДЕРЕВНЯ "ЧЕРНОЛЕСЬЕ"
+                            </h2>
+                            <div class="text-xs sm:text-sm text-gray-300 space-y-3 leading-relaxed mb-6">
+                                <p><span class="text-red-500 font-bold">ДАТА:</span> 31 октября 1999 года.</p>
+                                <p><span class="text-red-500 font-bold">ОБЪЕКТ:</span> Ученица 11-го класса Вера К. была найдена в заброшенном католическом костёле в подвешенном состоянии.</p>
+                                <p><span class="text-gray-400">ПОДРОБНОСТИ:</span> Местные подростки утверждают, что Вера пыталась вызвать "Пиковую Даму". Однако улики указывают на то, что компания друзей решила жёстко пошутить над Верой, заперла её внутри костёла доской снаружи, а когда вернулась — произошла трагедия.</p>
+                                <p class="text-amber-500 font-bold animate-pulse">У вас в руках смартфон Веры. Начинайте расследование.</p>
+                            </div>
+                            <button id="btn-start-investigation" class="w-full bg-red-950 hover:bg-red-900 border border-red-700 text-red-200 py-3 font-bold text-sm tracking-widest uppercase rounded transition-all duration-300">
+                                [ ВЗЯТЬ ТЕЛЕФОН ВЕРЫ ]
+                            </button>
+                        </div>
+
+                        <!-- iPhone Screen Container -->
+                        <div id="phone-screen" class="hidden w-[340px] sm:w-[360px] h-[640px] bg-neutral-900 border-4 border-neutral-700 rounded-[40px] p-3 shadow-[0_0_60px_rgba(0,0,0,0.9)] relative flex flex-col justify-between overflow-hidden">
+                            <!-- Speaker & Camera Notch Header -->
+                            <div class="w-full h-5 flex justify-center items-center z-20">
+                                <div class="w-16 h-3 bg-black rounded-full border border-neutral-800 flex items-center justify-end px-2">
+                                    <div class="w-1.5 h-1.5 bg-blue-900/60 rounded-full"></div>
+                                </div>
+                            </div>
+
+                            <!-- Screen Viewport -->
+                            <div class="w-full flex-1 bg-black rounded-[28px] relative overflow-hidden flex flex-col border border-neutral-800/80">
+                                
+                                <!-- iPhone Desktop Wallpaper & Home Apps Grid -->
+                                <div id="phone-home" class="w-full h-full p-4 flex flex-col justify-between relative bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1509114397022-ed747cca3f65?q=80&w=1000&auto=format&fit=crop');">
+                                    <div class="absolute inset-0 bg-black/50"></div>
+                                    
+                                    <!-- Status Bar -->
+                                    <div class="relative z-10 flex justify-between items-center text-[10px] text-gray-300 font-mono">
+                                        <span>22:50</span>
+                                        <span>13% 🔋</span>
+                                    </div>
+
+                                    <!-- Apps Grid -->
+                                    <div class="relative z-10 grid grid-cols-3 gap-4 my-auto text-center font-mono text-[10px] text-white">
+                                        <button onclick="openPhoneApp('app-telegram')" class="flex flex-col items-center group">
+                                            <div class="w-12 h-12 rounded-2xl bg-sky-600 flex items-center justify-center text-xl shadow-lg group-active:scale-95 transition-transform">✈️</div>
+                                            <span class="mt-1 drop-shadow">Telegram</span>
+                                        </button>
+                                        <button onclick="openPhoneApp('app-maps')" class="flex flex-col items-center group">
+                                            <div class="w-12 h-12 rounded-2xl bg-emerald-600 flex items-center justify-center text-xl shadow-lg group-active:scale-95 transition-transform">🗺️</div>
+                                            <span class="mt-1 drop-shadow">Карты</span>
+                                        </button>
+                                        <button onclick="openPhoneApp('app-photos')" class="flex flex-col items-center group">
+                                            <div class="w-12 h-12 rounded-2xl bg-amber-600 flex items-center justify-center text-xl shadow-lg group-active:scale-95 transition-transform">🖼️</div>
+                                            <span class="mt-1 drop-shadow">Фото</span>
+                                        </button>
+                                        <button onclick="openPhoneApp('app-dialer')" class="flex flex-col items-center group">
+                                            <div class="w-12 h-12 rounded-2xl bg-green-600 flex items-center justify-center text-xl shadow-lg group-active:scale-95 transition-transform">📞</div>
+                                            <span class="mt-1 drop-shadow">Телефон</span>
+                                        </button>
+                                        <button onclick="openPhoneApp('app-sms')" class="flex flex-col items-center group">
+                                            <div class="w-12 h-12 rounded-2xl bg-lime-600 flex items-center justify-center text-xl shadow-lg group-active:scale-95 transition-transform">💬</div>
+                                            <span class="mt-1 drop-shadow">SMS</span>
+                                        </button>
+                                        <button onclick="openPhoneApp('app-browser')" class="flex flex-col items-center group">
+                                            <div class="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center text-xl shadow-lg group-active:scale-95 transition-transform">🌐</div>
+                                            <span class="mt-1 drop-shadow">Браузер</span>
+                                        </button>
+                                        <button onclick="openPhoneApp('app-camera')" class="flex flex-col items-center group">
+                                            <div class="w-12 h-12 rounded-2xl bg-neutral-700 flex items-center justify-center text-xl shadow-lg group-active:scale-95 transition-transform">📷</div>
+                                            <span class="mt-1 drop-shadow">Камера</span>
+                                        </button>
+                                        <button onclick="openPhoneApp('app-settings')" class="flex flex-col items-center group">
+                                            <div class="w-12 h-12 rounded-2xl bg-gray-600 flex items-center justify-center text-xl shadow-lg group-active:scale-95 transition-transform">⚙️</div>
+                                            <span class="mt-1 drop-shadow">Настройки</span>
+                                        </button>
+                                        <button onclick="openPhoneApp('app-music')" class="flex flex-col items-center group">
+                                            <div class="w-12 h-12 rounded-2xl bg-rose-600 flex items-center justify-center text-xl shadow-lg group-active:scale-95 transition-transform">🎵</div>
+                                            <span class="mt-1 drop-shadow">Музыка</span>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 1. EXPANDED BEAUTIFUL MAPS APP -->
+                                <div id="app-maps" class="phone-app hidden h-full flex-col bg-[#0b0f19] text-white p-3 z-20">
+                                    <div class="flex justify-between items-center border-b border-gray-800 pb-2 mb-2">
+                                        <div class="flex items-center space-x-1.5">
+                                            <span class="text-sm">🗺️</span>
+                                            <span class="text-xs font-bold text-emerald-400 font-mono tracking-wider">КАРТА "ЧЕРНОЛЕСЬЕ"</span>
+                                        </div>
+                                        <button onclick="closePhoneApp()" class="text-[10px] bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-200 px-2 py-0.5 rounded">Выйти</button>
+                                    </div>
+                                    
+                                    <!-- Interactive Styled Map Canvas Grid -->
+                                    <div class="flex-1 rounded-xl border border-emerald-900/60 p-2 relative font-mono text-[10px] overflow-y-auto bg-[#060911] shadow-inner flex flex-col justify-between space-y-2">
+                                        <!-- Map Background Texture Lines -->
+                                        <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:10px_10px]"></div>
+
+                                        <!-- Map Header Coordinates -->
+                                        <div class="relative z-10 flex justify-between text-[8px] text-emerald-500/70 border-b border-emerald-950/80 pb-1">
+                                            <span>СЕКТОР: ЧЕРНОЛЕСЬЕ-13</span>
+                                            <span>54.120° N, 27.841° E</span>
+                                        </div>
+
+                                        <!-- Map Locations Interactive Grid -->
+                                        <div class="relative z-10 grid grid-cols-2 gap-2 my-1">
+                                            
+                                            <!-- Location 1: Unlocked - Vera's House -->
+                                            <div onclick="inspectLocation('Дом Веры', 'Комната Веры опечатана. Внутри найден личный дневник и строгая записка от отца.')" 
+                                                 class="p-2 bg-emerald-950/80 border border-emerald-500/70 rounded-lg shadow-lg cursor-pointer hover:bg-emerald-900/90 hover:scale-105 transition-all flex items-center space-x-2">
+                                                <span class="text-base">🏠</span>
+                                                <div class="overflow-hidden">
+                                                    <p class="font-bold text-emerald-200 text-[9px] truncate">Дом Веры</p>
+                                                    <p class="text-[7px] text-emerald-400 font-bold">[ОСМОТРЕНО]</p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Location 2: Unlocked - Old Abandoned Church -->
+                                            <div onclick="inspectLocation('Заброшенный Костёл', 'Место трагедии. Старая католическая церковь. Дверь была заперта доской снаружи.')" 
+                                                 class="p-2 bg-red-950/80 border border-red-600 rounded-lg shadow-lg cursor-pointer hover:bg-red-900/90 hover:scale-105 transition-all flex items-center space-x-2">
+                                                <span class="text-base">⛪</span>
+                                                <div class="overflow-hidden">
+                                                    <p class="font-bold text-red-200 text-[9px] truncate">Старый Костёл</p>
+                                                    <p class="text-[7px] text-red-400 font-bold">[МЕСТО ПРЕСТУПЛЕНИЯ]</p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Location 3: Unlocked - School -->
+                                            <div onclick="inspectLocation('Школа №1', 'Школа деревни Чернолесье. На парте 11-го класса найдены надписи и перечеркнутое имя Веры.')" 
+                                                 class="p-2 bg-emerald-950/80 border border-emerald-500/70 rounded-lg shadow-lg cursor-pointer hover:bg-emerald-900/90 hover:scale-105 transition-all flex items-center space-x-2">
+                                                <span class="text-base">🏫</span>
+                                                <div class="overflow-hidden">
+                                                    <p class="font-bold text-emerald-200 text-[9px] truncate">Школа (11 класс)</p>
+                                                    <p class="text-[7px] text-emerald-400 font-bold">[ДОСТУПНО]</p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Location 4: Unlocked - Active Village Church -->
+                                            <div onclick="inspectLocation('Действующий Храм', 'Главная святыня деревни. Здесь собираются религиозные жители и священник. Родители Веры были тут в ночь трагедии.')" 
+                                                 class="p-2 bg-cyan-950/80 border border-cyan-500/70 rounded-lg shadow-lg cursor-pointer hover:bg-cyan-900/90 hover:scale-105 transition-all flex items-center space-x-2">
+                                                <span class="text-base">🕊️</span>
+                                                <div class="overflow-hidden">
+                                                    <p class="font-bold text-cyan-200 text-[9px] truncate">Действующий Храм</p>
+                                                    <p class="text-[7px] text-cyan-400 font-bold">[ОТКРЫТО]</p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Location 5: Locked - Maxim's House -->
+                                            <div onclick="inspectLocation('Дом Максима', 'Адрес заблокирован. Вычислите адрес в Телеграм-чатах.', true)" 
+                                                 class="p-2 bg-neutral-900/90 border border-neutral-800 rounded-lg opacity-60 cursor-pointer hover:opacity-100 transition-all flex items-center space-x-2">
+                                                <span class="text-base">🏚️</span>
+                                                <div class="overflow-hidden">
+                                                    <p class="font-bold text-gray-400 text-[9px] truncate">Дом Максима</p>
+                                                    <p class="text-[7px] text-red-500 font-bold">[ЗАКРЫТО]</p>
+                                                </div>
+                                            </div>
+
+                                            <!-- Location 6: Locked - Yariks House -->
+                                            <div onclick="inspectLocation('Дом Ярика', 'Адрес заблокирован. Узнайте точное местоположение из переписки.', true)" 
+                                                 class="p-2 bg-neutral-900/90 border border-neutral-800 rounded-lg opacity-60 cursor-pointer hover:opacity-100 transition-all flex items-center space-x-2">
+                                                <span class="text-base">🏡</span>
+                                                <div class="overflow-hidden">
+                                                    <p class="font-bold text-gray-400 text-[9px] truncate">Дом Ярика</p>
+                                                    <p class="text-[7px] text-red-500 font-bold">[ЗАКРЫТО]</p>
+                                                </div>
+                                            </div>
+
+                                        </div>
+
+                                        <!-- Map Inspect Info Banner -->
+                                        <div id="map-info-box" class="relative z-10 p-2 bg-emerald-950/40 border border-emerald-900/80 rounded-lg text-[9px] leading-tight text-gray-300">
+                                            <span class="text-emerald-400 font-bold">📍 НАЖМИТЕ НА ЛОКАЦИЮ ДЛЯ ОСМОТРА</span>
+                                        </div>
+
+                                        <!-- Action Transition Menu -->
+                                        <div id="map-action-menu" class="hidden relative z-20 p-2 bg-neutral-900 border border-emerald-500/80 rounded-lg shadow-2xl flex flex-col space-y-1.5">
+                                            <div class="flex justify-between items-center">
+                                                <p id="map-action-title" class="font-bold text-emerald-300 text-[10px]">ЛОКАЦИЯ: ДОМ ВЕРЫ</p>
+                                                <button onclick="closeLocationMenu()" class="text-[9px] text-gray-400 hover:text-white">✕</button>
+                                            </div>
+                                            <p id="map-action-desc" class="text-[8px] text-gray-400">Первая доступная точка расследования.</p>
+                                            <button onclick="goToLocation()" class="w-full bg-emerald-700 hover:bg-emerald-600 text-white font-bold py-1 rounded text-[9px] tracking-wider uppercase transition-colors">
+                                                [ ПЕРЕЙТИ В ЛОКАЦИЮ ]
+                                            </button>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <!-- 2. TELEGRAM APP (РЕСТАВРИРОВАННАЯ ЛЮБИМАЯ ВЕРСИЯ) -->
+                                <div id="app-telegram" class="phone-app hidden h-full flex-col bg-[#1c2733] text-white z-20">
+                                    <!-- List Header -->
+                                    <div id="tg-header-list" class="flex justify-between items-center bg-[#242f3d] p-2.5 border-b border-black/30">
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-sm cursor-pointer text-gray-300">≡</span>
+                                            <span class="text-xs font-bold font-mono tracking-wider">Telegram</span>
+                                        </div>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-xs cursor-pointer text-gray-400">🔍</span>
+                                            <button onclick="closePhoneApp()" class="text-[10px] bg-neutral-800 text-gray-300 px-2 py-0.5 rounded hover:bg-neutral-700">Выйти</button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Individual Chat Header -->
+                                    <div id="tg-header-chat" class="hidden justify-between items-center bg-[#242f3d] p-2 border-b border-black/30">
+                                        <button onclick="closeTgChat()" class="text-sky-400 text-xs font-bold px-1 hover:text-sky-300">← Назад</button>
+                                        <div class="text-center">
+                                            <p id="tg-chat-name" class="text-xs font-bold font-mono text-gray-200">Чат</p>
+                                            <p class="text-[8px] text-emerald-400">был(а) недавно</p>
+                                        </div>
+                                        <span class="w-8"></span>
+                                    </div>
+
+                                    <!-- Chat List Container -->
+                                    <div id="tg-chat-list" class="flex-1 overflow-y-auto font-sans text-[11px] divide-y divide-white/5">
+                                        
+                                        <!-- Group Chat: 11 класс -->
+                                        <div onclick="openTgChat('🔥 11 класс', [
+                                            {from: 'Максим', text: 'Пацаны и девки, послушайте сюда. Никто ни слова ментярам про то, что заперли её в костёле!', time: '01:15'},
+                                            {from: 'Ярик', text: 'Макс, ты ебанулся?! Её там нашли подвешенной! Я не буду врать!', time: '01:18'},
+                                            {from: 'Таня', text: 'Господи, удалите этот чат, я умоляю вас...', time: '01:20'},
+                                            {from: 'Настя', text: 'Нам всем пиздец из-за вашей дурацкой шутки...', time: '01:22'}
+                                        ])" class="flex items-center p-2.5 hover:bg-[#242f3d]/60 cursor-pointer transition-colors space-x-2.5">
+                                            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-amber-600 to-red-600 flex items-center justify-center font-bold text-xs shadow-md">11</div>
+                                            <div class="flex-1 overflow-hidden">
+                                                <div class="flex justify-between items-baseline">
+                                                    <span class="font-bold text-gray-100 truncate">🔥 11 класс</span>
+                                                    <span class="text-[8px] text-gray-400 font-mono">01:22</span>
+                                                </div>
+                                                <p class="text-[10px] text-gray-400 truncate">Настя: Нам всем пиздец из-за вашей...</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Максим -->
+                                        <div onclick="openTgChat('Максим', [
+                                            {from: 'Максим', text: 'Вера, ответь бля. Не усложняй. Ты сама согласилась пойти в костёл.', time: '22:10'},
+                                            {from: 'Максим', text: 'Слышь, не строй из себя жертву, просто посиди 10 минут.', time: '22:15'}
+                                        ])" class="flex items-center p-2.5 hover:bg-[#242f3d]/60 cursor-pointer transition-colors space-x-2.5">
+                                            <div class="w-10 h-10 rounded-full bg-red-900 flex items-center justify-center font-bold text-xs text-red-200">М</div>
+                                            <div class="flex-1 overflow-hidden">
+                                                <div class="flex justify-between items-baseline">
+                                                    <span class="font-bold text-gray-200">Максим</span>
+                                                    <span class="text-[8px] text-gray-400 font-mono">22:15</span>
+                                                </div>
+                                                <p class="text-[10px] text-gray-400 truncate">Слышь, не строй из себя жертву...</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Ярик -->
+                                        <div onclick="openTgChat('Ярик', [
+                                            {from: 'Ярик', text: 'Вера, прости нас. Я говорил Максу не подпирать дверь доской...', time: '23:40'},
+                                            {from: 'Ярик', text: 'Я вернусь и отпру костёл, только не плачь.', time: '23:42'}
+                                        ])" class="flex items-center p-2.5 hover:bg-[#242f3d]/60 cursor-pointer transition-colors space-x-2.5">
+                                            <div class="w-10 h-10 rounded-full bg-amber-800 flex items-center justify-center font-bold text-xs text-amber-100">Я</div>
+                                            <div class="flex-1 overflow-hidden">
+                                                <div class="flex justify-between items-baseline">
+                                                    <span class="font-bold text-gray-200">Ярик</span>
+                                                    <span class="text-[8px] text-gray-400 font-mono">23:42</span>
+                                                </div>
+                                                <p class="text-[10px] text-gray-400 truncate">Я вернусь и отпру костёл...</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Таня -->
+                                        <div onclick="openTgChat('Таня', [
+                                            {from: 'Таня', text: 'Вер, ты где? Мы у костёла стоим, мальчики какие-то странные сегодня...', time: '21:50'}
+                                        ])" class="flex items-center p-2.5 hover:bg-[#242f3d]/60 cursor-pointer transition-colors space-x-2.5">
+                                            <div class="w-10 h-10 rounded-full bg-purple-900 flex items-center justify-center font-bold text-xs text-purple-200">Т</div>
+                                            <div class="flex-1 overflow-hidden">
+                                                <div class="flex justify-between items-baseline">
+                                                    <span class="font-bold text-gray-200">Таня</span>
+                                                    <span class="text-[8px] text-gray-400 font-mono">21:50</span>
+                                                </div>
+                                                <p class="text-[10px] text-gray-400 truncate">Вер, ты где? Мы у костёла...</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Настя -->
+                                        <div onclick="openTgChat('Настя', [
+                                            {from: 'Настя', text: 'Вера, забей на слова отца. Пойдём развеемся.', time: '21:00'}
+                                        ])" class="flex items-center p-2.5 hover:bg-[#242f3d]/60 cursor-pointer transition-colors space-x-2.5">
+                                            <div class="w-10 h-10 rounded-full bg-pink-900 flex items-center justify-center font-bold text-xs text-pink-200">Н</div>
+                                            <div class="flex-1 overflow-hidden">
+                                                <div class="flex justify-between items-baseline">
+                                                    <span class="font-bold text-gray-200">Настя</span>
+                                                    <span class="text-[8px] text-gray-400 font-mono">21:00</span>
+                                                </div>
+                                                <p class="text-[10px] text-gray-400 truncate">Вера, забей на слова отца...</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Вика -->
+                                        <div onclick="openTgChat('Вика', [
+                                            {from: 'Вика', text: 'Мне мама запретила к костёлу ночью подходить, там реально страшно...', time: '20:40'}
+                                        ])" class="flex items-center p-2.5 hover:bg-[#242f3d]/60 cursor-pointer transition-colors space-x-2.5">
+                                            <div class="w-10 h-10 rounded-full bg-indigo-900 flex items-center justify-center font-bold text-xs text-indigo-200">В</div>
+                                            <div class="flex-1 overflow-hidden">
+                                                <div class="flex justify-between items-baseline">
+                                                    <span class="font-bold text-gray-200">Вика</span>
+                                                    <span class="text-[8px] text-gray-400 font-mono">20:40</span>
+                                                </div>
+                                                <p class="text-[10px] text-gray-400 truncate">Мне мама запретила к костёлу...</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Мама -->
+                                        <div onclick="openTgChat('Мама', [
+                                            {from: 'Мама', text: 'Отец в бешенстве! Ты опять ушла к этой заброшке?! Перезвони сейчас же!', time: '22:00'}
+                                        ])" class="flex items-center p-2.5 hover:bg-[#242f3d]/60 cursor-pointer transition-colors space-x-2.5">
+                                            <div class="w-10 h-10 rounded-full bg-emerald-900 flex items-center justify-center font-bold text-xs text-emerald-200">М</div>
+                                            <div class="flex-1 overflow-hidden">
+                                                <div class="flex justify-between items-baseline">
+                                                    <span class="font-bold text-gray-200">Мама</span>
+                                                    <span class="text-[8px] text-gray-400 font-mono">22:00</span>
+                                                </div>
+                                                <p class="text-[10px] text-gray-400 truncate">Отец в бешенстве! Ты опять...</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Отец -->
+                                        <div onclick="openTgChat('Отец', [
+                                            {from: 'Отец', text: 'Вернешься домой — пойдешь каяться в храм. Хватит позорить семью перед деревней.', time: '21:40'}
+                                        ])" class="flex items-center p-2.5 hover:bg-[#242f3d]/60 cursor-pointer transition-colors space-x-2.5">
+                                            <div class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xs text-slate-200">О</div>
+                                            <div class="flex-1 overflow-hidden">
+                                                <div class="flex justify-between items-baseline">
+                                                    <span class="font-bold text-gray-200">Отец</span>
+                                                    <span class="text-[8px] text-gray-400 font-mono">21:40</span>
+                                                </div>
+                                                <p class="text-[10px] text-gray-400 truncate">Вернешься домой — пойдешь...</p>
+                                            </div>
+                                        </div>
+
+                                    </div>
+
+                                    <!-- Messages View Container -->
+                                    <div id="tg-messages-view" class="hidden flex-1 overflow-y-auto p-3 space-y-2 bg-[#0e1621]"></div>
+                                </div>
+
+                                <!-- 3. PHOTOS APP -->
+                                <div id="app-photos" class="phone-app hidden h-full flex-col bg-neutral-950 text-white p-3 z-20">
+                                    <div class="flex justify-between items-center border-b border-neutral-800 pb-2 mb-2">
+                                        <span class="text-xs font-bold text-amber-500 font-mono">🖼️ ФОТОГАЛЕРЕЯ</span>
+                                        <button onclick="closePhoneApp()" class="text-xs bg-neutral-800 px-2 py-1 rounded text-gray-300">Выйти</button>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2 flex-1 overflow-y-auto font-mono text-[10px]">
+                                        <div class="bg-neutral-900 border border-neutral-800 p-1.5 rounded text-center">
+                                            <div class="w-full h-20 bg-neutral-800 rounded mb-1 flex items-center justify-center text-xl">⛪</div>
+                                            <p class="text-gray-300 text-[9px]">Костёл_снаружи.jpg</p>
+                                        </div>
+                                        <div class="bg-neutral-900 border border-neutral-800 p-1.5 rounded text-center">
+                                            <div class="w-full h-20 bg-neutral-800 rounded mb-1 flex items-center justify-center text-xl">🚪</div>
+                                            <p class="text-gray-300 text-[9px]">Замок_двери.jpg</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 4. DIALER / TELEPHONE -->
+                                <div id="app-dialer" class="phone-app hidden h-full flex-col bg-neutral-950 text-white p-3 z-20">
+                                    <div class="flex justify-between items-center border-b border-neutral-800 pb-2 mb-2">
+                                        <span class="text-xs font-bold text-green-500 font-mono">📞 ТЕЛЕФОН</span>
+                                        <button onclick="closePhoneApp()" class="text-xs bg-neutral-800 px-2 py-1 rounded text-gray-300">Выйти</button>
+                                    </div>
+                                    <div class="flex-1 flex flex-col items-center justify-center font-mono text-[11px] text-center">
+                                        <p class="text-red-500 mb-2">НЕТ СВЯЗИ В ДЕРЕВНЕ</p>
+                                        <p class="text-gray-500 text-[9px]">Экстренные вызовы недоступны</p>
+                                    </div>
+                                </div>
+
+                                <!-- 9. MUSIC & VOICE RECORDINGS APP -->
+                                <div id="app-music" class="phone-app hidden h-full flex-col bg-[#121212] text-white p-3 z-20">
+                                    <div class="flex justify-between items-center border-b border-neutral-800 pb-2 mb-2">
+                                        <div class="flex items-center space-x-1.5">
+                                            <span class="text-sm">🎙️</span>
+                                            <span class="text-xs font-bold text-rose-500 font-mono">ДИКТОФОН ВЕРЫ</span>
+                                        </div>
+                                        <button onclick="closePhoneApp()" class="text-[10px] bg-red-950/80 hover:bg-red-900 border border-red-800 text-red-200 px-2 py-0.5 rounded">Выйти</button>
+                                    </div>
+                                    
+                                    <div class="flex-1 overflow-y-auto space-y-2 font-mono text-[10px]">
+                                        
+                                        <!-- Audio Track 1 -->
+                                        <div class="p-2.5 bg-neutral-900 border border-neutral-800 rounded-xl hover:border-rose-900/60 transition-all">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <span class="font-bold text-rose-400">🎙️ Запись_31_10_22:05.m4a</span>
+                                                <span class="text-[8px] text-gray-500">0:14</span>
+                                            </div>
+                                            <p class="text-[9px] text-gray-400 italic mb-2">Шум ветра, скрип старой двери костёла и эхо.</p>
+                                            
+                                            <button onclick="playVoiceRecord('rec1')" id="btn-rec1" class="w-full bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-200 py-1.5 rounded text-[9px] font-bold tracking-wider flex items-center justify-center space-x-1">
+                                                <span>▶ ПРОСЛУШАТЬ ЗАПИСЬ</span>
+                                            </button>
+                                            <p id="transcript-rec1" class="hidden mt-2 text-[9px] text-amber-300 border-t border-neutral-800 pt-1.5 leading-relaxed">
+                                                "Макс, хватит! Это вообще не смешно! Откройте дверь, тут холодно... Макс? КТО ТАМ ЗА АЛТАРЕМ?!"
+                                            </p>
+                                        </div>
+
+                                        <!-- Audio Track 2 -->
+                                        <div class="p-2.5 bg-neutral-900 border border-neutral-800 rounded-xl hover:border-rose-900/60 transition-all">
+                                            <div class="flex justify-between items-center mb-1">
+                                                <span class="font-bold text-rose-400">🎙️ Запись_Шум_Возле_Дома.m4a</span>
+                                                <span class="text-[8px] text-gray-500">0:09</span>
+                                            </div>
+                                            <p class="text-[9px] text-gray-400 italic mb-2">Глухой стук в окно и шепот отца.</p>
+                                            
+                                            <button onclick="playVoiceRecord('rec2')" id="btn-rec2" class="w-full bg-rose-950/80 hover:bg-rose-900 border border-rose-800 text-rose-200 py-1.5 rounded text-[9px] font-bold tracking-wider flex items-center justify-center space-x-1">
+                                                <span>▶ ПРОСЛУШАТЬ ЗАПИСЬ</span>
+                                            </button>
+                                            <p id="transcript-rec2" class="hidden mt-2 text-[9px] text-amber-300 border-t border-neutral-800 pt-1.5 leading-relaxed">
+                                                "Если ты ещё раз пойдёшь к костёлу с этими иродами — я сам закрою тебя в погребе..."
+                                            </p>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+                                <!-- 5. SMS -->
+                                <div id="app-sms" class="phone-app hidden h-full flex-col bg-neutral-950 p-3 z-20">
+                                    <div class="flex justify-between items-center border-b border-neutral-800 pb-2 mb-2">
+                                        <span class="text-xs font-bold text-lime-400 font-mono">💬 SMS ВЕРЫ</span>
+                                        <button onclick="closePhoneApp()" class="text-xs bg-neutral-800 px-2 py-1 rounded text-gray-300">Назад</button>
+                                    </div>
+                                    <div class="flex-1 space-y-2 font-mono text-[11px]">
+                                        <div class="p-2 bg-neutral-900 border border-neutral-800 rounded">
+                                            <p class="text-gray-400 text-[9px]">От: Мама</p>
+                                            <p class="text-gray-200">Вера, ты где? Домой немедленно!</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 6. BROWSER -->
+                                <div id="app-browser" class="phone-app hidden h-full flex-col bg-neutral-950 p-3 z-20">
+                                    <div class="flex justify-between items-center border-b border-neutral-800 pb-2 mb-2">
+                                        <span class="text-xs font-bold text-indigo-400 font-mono">🧭 БРАУЗЕР</span>
+                                        <button onclick="closePhoneApp()" class="text-xs bg-neutral-800 px-2 py-1 rounded text-gray-300">Назад</button>
+                                    </div>
+                                    <div class="flex-1 flex flex-col items-center justify-center font-mono text-[11px] text-center p-3">
+                                        <div class="text-3xl mb-2">🌐❌</div>
+                                        <p class="text-red-500 font-bold mb-1">НЕТ СИГНАЛА СЕТИ</p>
+                                        <p class="text-gray-500 text-[10px]">Не удалось подключиться к серверу. Сеть в деревне "Чернолесье" недоступна.</p>
+                                    </div>
+                                </div>
+
+                                <!-- 7. CAMERA -->
+                                <div id="app-camera" class="phone-app hidden h-full flex-col bg-black p-3 z-20 items-center justify-between">
+                                    <div class="w-full flex justify-between items-center">
+                                        <span class="text-xs font-mono text-gray-400">📷 КАМЕРА</span>
+                                        <button onclick="closePhoneApp()" class="text-xs bg-neutral-800 px-2 py-1 rounded text-gray-300">Назад</button>
+                                    </div>
+                                    <div class="w-full h-48 bg-neutral-900 border border-neutral-800 rounded flex items-center justify-center relative overflow-hidden">
+                                        <span class="text-gray-600 text-xs font-mono animate-pulse">ОБНАРУЖЕНА АНОМАЛИЯ</span>
+                                        <div class="absolute inset-0 bg-red-900/10 pointer-events-none"></div>
+                                    </div>
+                                </div>
+
+                                <!-- 8. SETTINGS -->
+                                <div id="app-settings" class="phone-app hidden h-full flex-col bg-neutral-950 p-3 z-20">
+                                    <div class="flex justify-between items-center border-b border-neutral-800 pb-2 mb-2">
+                                        <span class="text-xs font-bold text-gray-400 font-mono">⚙️ НАСТРОЙКИ</span>
+                                        <button onclick="closePhoneApp()" class="text-xs bg-neutral-800 px-2 py-1 rounded text-gray-300">Назад</button>
+                                    </div>
+                                    <div class="text-[11px] font-mono text-gray-400 space-y-2">
+                                        <p>Владелец: Вера К.</p>
+                                        <p>Память: 98% заполнено</p>
+                                        <p class="text-red-500">Система: Зафиксирован сбой синхронизации</p>
+                                    </div>
+                                </div>
+
+                            </div>
+                            
+                            <!-- iPhone Home Button -->
+                            <div class="w-full h-8 flex justify-center items-center z-20 pt-1">
+                                <button onclick="closePhoneApp()" class="w-12 h-3 bg-neutral-800 border border-neutral-700 rounded-full hover:bg-neutral-700 transition-colors cursor-pointer"></button>
+                            </div>
+                        </div>
+                    `;
+
+                    // Bind "ВЗЯТЬ ТЕЛЕФОН ВЕРЫ" action
+                    const btnStart = document.getElementById('btn-start-investigation');
+                    if (btnStart) {
+                        btnStart.addEventListener('click', () => {
+                            playClickSFX();
+                            document.getElementById('briefing-screen').classList.add('hidden');
+                            document.getElementById('phone-screen').classList.remove('hidden');
+                        });
+                    }
+                }, 1200);
+            });
+        });
+
+        // App Navigation & Helper Functions
+        window.openPhoneApp = function(appId) {
+            playClickSFX();
+            document.getElementById('phone-home').classList.add('hidden');
+            document.querySelectorAll('.phone-app').forEach(app => {
+                app.classList.add('hidden');
+                app.classList.remove('flex');
+            });
+            const targetApp = document.getElementById(appId);
+            if (targetApp) {
+                targetApp.classList.remove('hidden');
+                targetApp.classList.add('flex');
+            }
+        };
+
+        // Map inspect logic & Action Menu
+        let currentLocationTarget = null;
+
+        window.inspectLocation = function(id, description, isLocked) {
+            const infoBox = document.getElementById('map-info-box');
+            const actionMenu = document.getElementById('map-action-menu');
+            const actionTitle = document.getElementById('map-action-title');
+            const actionDesc = document.getElementById('map-action-desc');
+
+            if (isLocked) {
+                playErrorSFX();
+                if (actionMenu) actionMenu.classList.add('hidden');
+                if (infoBox) {
+                    infoBox.innerHTML = `<span class="text-red-500 font-bold">🔒 ${id.toUpperCase()} (ЗАКРЫТО):</span><br><span class="text-gray-300">${description}</span>`;
+                }
+            } else {
+                playClickSFX();
+                currentLocationTarget = id;
+                if (infoBox) {
+                    infoBox.innerHTML = `<span class="text-emerald-400 font-bold">📍 ${id.toUpperCase()}:</span><br><span class="text-gray-200">${description}</span>`;
+                }
+                if (actionMenu) {
+                    actionTitle.innerText = `ЛОКАЦИЯ: ${id.toUpperCase()}`;
+                    actionDesc.innerText = description;
+                    actionMenu.classList.remove('hidden');
+                }
+            }
+        };
+
+        window.closeLocationMenu = function() {
+            playClickSFX();
+            const actionMenu = document.getElementById('map-action-menu');
+            if (actionMenu) actionMenu.classList.add('hidden');
+        };
+
+        window.goToLocation = function() {
+            playClickSFX();
+            const infoBox = document.getElementById('map-info-box');
+            if (currentLocationTarget === 'Дом Веры') {
+                if (infoBox) {
+                    infoBox.innerHTML = `<span class="text-amber-400 font-bold">🚪 ПЕРЕХОД В ДОМ ВЕРЫ...</span><br><span class="text-gray-200">Вы подходите к опечатанному дому Веры. Местные жители смотрят на вас из окон...</span>`;
+                }
+                closeLocationMenu();
+            } else {
+                if (infoBox) {
+                    infoBox.innerHTML = `<span class="text-amber-400 font-bold">📍 ЛОКАЦИЯ "${currentLocationTarget.toUpperCase()}":</span><br><span class="text-gray-300">Исследование этой территории станет доступно на следующем этапе расследования.</span>`;
+                }
+                closeLocationMenu();
+            }
+        };
+
+        // Voice Recording playback simulation logic
+        window.playVoiceRecord = function(recId) {
+            playClickSFX();
+            const transcript = document.getElementById(`transcript-${recId}`);
+            const btn = document.getElementById(`btn-${recId}`);
+            
+            if (transcript) {
+                transcript.classList.remove('hidden');
+            }
+            if (btn) {
+                btn.innerHTML = "🔊 ВОСПРОИЗВЕДЕНИЕ...";
+                btn.classList.add('animate-pulse');
+                
+                // Creepy synth audio playback for voice recording
+                if (audioCtx) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(120, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(70, audioCtx.currentTime + 2.5);
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 2.5);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 2.5);
+                }
+
+                setTimeout(() => {
+                    btn.innerHTML = "✓ ЗАПИСЬ ПРОСЛУШАНА";
+                    btn.classList.remove('animate-pulse');
+                }, 2500);
+            }
+        };
+
+        window.openTgChat = function(name, messages) {
+            document.getElementById('tg-header-list').classList.add('hidden');
+            document.getElementById('tg-chat-list').classList.add('hidden');
+            document.getElementById('tg-header-chat').classList.remove('hidden');
+            document.getElementById('tg-header-chat').classList.add('flex');
+            
+            const msgView = document.getElementById('tg-messages-view');
+            msgView.classList.remove('hidden');
+            msgView.classList.add('flex');
+            document.getElementById('tg-chat-name').innerText = name;
+
+            let html = '';
+            messages.forEach(m => {
+                const isMe = m.from === 'Вера';
+                html += `
+                    <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'} my-1">
+                        <div class="max-w-[80%] p-2 rounded-lg ${isMe ? 'bg-[#2b5278] text-white' : 'bg-[#182533] text-gray-200'} shadow border border-white/5">
+                            <span class="text-[9px] text-sky-300 font-bold block mb-0.5">${m.from}</span>
+                            <p class="leading-snug">${m.text}</p>
+                            <span class="text-[8px] text-gray-400 float-right mt-1 ml-2">${m.time}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            msgView.innerHTML = html;
+        };
+
+        window.closeTgChat = function() {
+            document.getElementById('tg-header-chat').classList.add('hidden');
+            document.getElementById('tg-header-chat').classList.remove('flex');
+            document.getElementById('tg-messages-view').classList.add('hidden');
+            document.getElementById('tg-messages-view').classList.remove('flex');
+            document.getElementById('tg-header-list').classList.remove('hidden');
+            document.getElementById('tg-chat-list').classList.remove('hidden');
+        };
+
+        window.closePhoneApp = function() {
+            document.querySelectorAll('.phone-app').forEach(app => {
+                app.classList.add('hidden');
+                app.classList.remove('flex');
+            });
+            const phoneHome = document.getElementById('phone-home');
+            if (phoneHome) {
+                phoneHome.classList.remove('hidden');
+            }
+        };
+
+        // DIFFICULTY MODAL INTERACTION
+        btnDifficulty.addEventListener('click', () => {
+            playClickSFX();
+            diffModal.classList.remove('hidden');
+        });
+
+        btnCloseDiff.addEventListener('click', () => {
+            playClickSFX();
+            diffModal.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+        });
+
+        function showDiffError() {
+            playErrorSFX();
+            errorMessage.classList.remove('hidden');
+            errorMessage.classList.add('animate-bounce');
+            setTimeout(() => {
+                errorMessage.classList.remove('animate-bounce');
+            }, 500);
+        }
+
+        diffPrev.addEventListener('click', showDiffError);
+        diffNext.addEventListener('click', showDiffError);
+    </script>
+</body>
+</html>
